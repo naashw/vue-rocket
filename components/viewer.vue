@@ -28,6 +28,26 @@
 </template>
 <script setup lang="ts">
 import { View360, EquirectProjection } from "@egjs/vue3-view360";
+import type { RuntimeConfig } from "nuxt/schema";
+import Pusher from 'pusher-js';
+
+const runetimeConfig: RuntimeConfig = useRuntimeConfig();
+
+let client = new Pusher('app-key', {
+  cluster: runetimeConfig.public.pusher.cluster,
+  wsHost: runetimeConfig.public.pusher.host,
+    wsPort: runetimeConfig.public.pusher.port,
+    forceTLS: runetimeConfig.public.pusher.useTLS,
+    enabledTransports: ['ws', 'wss']
+});
+
+client.subscribe('test-channel').bind('message', (message: { sender: string, content: string}) => {
+    console.log(`${message.sender} says: ${message.content}`);
+});
+
+setInterval(() => {
+  client.send_event('pusher:trigger_server', { sender: 'client', content: 'Hello world' }, 'test-channel');
+}, 1000);
 
 const projection = new EquirectProjection({
   src: "/360_mock.jpg",

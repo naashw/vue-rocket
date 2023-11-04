@@ -3,4 +3,19 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   ssr: false,
   css: ["~/assets/css/view360.css"],
+
+  runtimeConfig: {
+    public: {
+      pusher: {
+        appId: 'app-id',
+        key: 'app-key',
+        secret: 'app-secret',
+        host: 'localhost',
+        port: 6001,
+        cluster: 'visiteici',
+        useTLS: false,
+      },
+    },
+  }
 });
+
