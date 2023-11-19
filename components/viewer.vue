@@ -44,11 +44,18 @@ onMounted(() => {
 });
 
 function  onViewChange(evt: ViewChangeEvent) {
-  console.log("view change", evt.yaw);
+  calculerResultat(evt.yaw, 180);
 };
 function onReady() {
   console.log("ready");
 };
+
+function calculerResultat(Position: number, Direction:number ): void {
+  const resultat: number = -(Position) - Direction;
+
+  console.log(Position, resultat, resultat+Position);
+}
+
 </script>
 
 <style scoped>
