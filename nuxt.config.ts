@@ -21,6 +21,7 @@ export default defineNuxtConfig({
         cluster: 'visiteici',
         useTLS: false,
       },
+      apiUrl: 'http://localhost:3001',
     },
-  }
+  },
 });

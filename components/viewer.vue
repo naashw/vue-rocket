@@ -33,15 +33,53 @@
 <script setup lang="ts">
 import { View360, EquirectProjection, ViewChangeEvent } from "@egjs/vue3-view360";
 
+interface VirtualTourDataItem {
+  time: Date;
+  virtualTourId: string;
+  posX: number;
+  posY: number;
+  posZ: number;
+}
+
+const virtualTourData = ref<VirtualTourDataItem[]>([]);
+
 const projection = new EquirectProjection({
   src: "/360_mock.jpg",
 });
 
 const viewer = ref(View360);
 
+  async function sendData() {
+  // Vérifiez s'il y a des données à envoyer
+  if (virtualTourData.value.length > 0) {
+    const dataSliced = virtualTourData.value.slice(); // Copiez les données à envoyer
+    virtualTourData.value = []; // Videz le tableau
+
+    // Envoyez les données à l'API
+    try {
+      const response = await $fetch('virtualTour/save/', {
+        method: 'POST',
+        body: dataSliced,
+        baseURL: 'http://localhost:3001/',
+      });
+
+      console.log('Données envoyées avec succès');
+    } catch (error) {
+      console.error('Erreur lors de l\'envoi des données :', error);
+    }
+  }
+}
+
 onMounted(() => {
-  console.log(viewer.value.view360.on("viewChange", onViewChange));
+  viewer.value.view360.on("viewChange", onViewChange);
+   const sendingInterval = setInterval(sendData, 1000);
+
+    onUnmounted(() => {
+    clearInterval(sendingInterval);
+  });
+
 });
+
 
 function  onViewChange(evt: ViewChangeEvent) {
   calculerResultat(evt.yaw, 180);
@@ -52,9 +90,15 @@ function onReady() {
 
 function calculerResultat(Position: number, Direction:number ): void {
   const resultat: number = -(Position) - Direction;
-
-  console.log(Position, resultat, resultat+Position);
+  virtualTourData.value.push({
+    time: new Date(),
+    virtualTourId: '1',
+    posX: 0,
+    posY: 0,
+    posZ: 0
+  })
 }
+
 
 </script>
 
