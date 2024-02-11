@@ -36,9 +36,9 @@ import { View360, EquirectProjection, ViewChangeEvent } from "@egjs/vue3-view360
 interface VirtualTourDataItem {
   time: Date;
   virtualTourId: string;
-  posX: number;
-  posY: number;
-  posZ: number;
+  yaw: number;
+  pitch: number;
+  zoom: number;
 }
 
 const virtualTourData = ref<VirtualTourDataItem[]>([]);
@@ -51,7 +51,9 @@ const viewer = ref(View360);
 
   async function sendData() {
   // Vérifiez s'il y a des données à envoyer
-  if (virtualTourData.value.length > 0) {
+  if(virtualTourData.value.length <= 0){
+    return;
+  }
     const dataSliced = virtualTourData.value.slice(); // Copiez les données à envoyer
     virtualTourData.value = []; // Videz le tableau
 
@@ -67,7 +69,6 @@ const viewer = ref(View360);
     } catch (error) {
       console.error('Erreur lors de l\'envoi des données :', error);
     }
-  }
 }
 
 onMounted(() => {
@@ -82,20 +83,20 @@ onMounted(() => {
 
 
 function  onViewChange(evt: ViewChangeEvent) {
-  calculerResultat(evt.yaw, 180);
+  console.log("evt", evt);
+  StockPosition(evt.yaw, evt.pitch, evt.zoom);
 };
 function onReady() {
   console.log("ready");
 };
 
-function calculerResultat(Position: number, Direction:number ): void {
-  const resultat: number = -(Position) - Direction;
+function StockPosition(yaw: number, pitch: number, zoom: number ): void {
   virtualTourData.value.push({
     time: new Date(),
     virtualTourId: '1',
-    posX: 0,
-    posY: 0,
-    posZ: 0
+    yaw,
+    pitch,
+    zoom,
   })
 }
 
