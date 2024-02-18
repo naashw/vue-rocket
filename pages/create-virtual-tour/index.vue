@@ -1,55 +1,31 @@
 <template>
-  <div id="app">
-    <file-pond
-      name="test"
-      ref="pond"
-      label-idle="Drop files here..."
-      v-bind:allow-multiple="true"
-      accepted-file-types="image/jpeg, image/png"
-      server="/api"
-      v-bind:files="myFiles"
-      v-on:init="handleFilePondInit"
-    />
+  <div v-if="virtualTourId">
+  <file-uploader :virtualTourId="virtualTourId"></file-uploader>
   </div>
 </template>
 
-<script>
-// Import Vue FilePond
-import vueFilePond from "vue-filepond";
+<script setup lang="ts">
 
-// Import FilePond styles
-import "filepond/dist/filepond.min.css";
+// vuejs on mounted get data from api
+import { onMounted, onBeforeMount  } from 'vue';
+const virtualTourId = ref<string|undefined>(undefined);
 
-// Import FilePond plugins
-// Please note that you need to install these plugins separately
+onBeforeMount(async () => {
+  virtualTourId.value = await getRandomVirtualTourId();
+});
 
-// Import image preview plugin styles
-import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.min.css";
+async function getRandomVirtualTourId(): Promise<string | undefined> {
+  // Envoyez les données à l'API
+  try {
+    const randomId: string = await $fetch('virtualTour/id', {
+      method: 'GET',
+      baseURL: 'http://localhost:3001/',
+    });
 
-// Import image preview and file type validation plugins
-import FilePondPluginFileValidateType from "filepond-plugin-file-validate-type";
-import FilePondPluginImagePreview from "filepond-plugin-image-preview";
-
-// Create component
-const FilePond = vueFilePond(
-  FilePondPluginFileValidateType,
-  FilePondPluginImagePreview
-);
-
-export default {
-  name: "app",
-  data: function () {
-    return { myFiles: ["cat.jpeg"] };
-  },
-  methods: {
-    handleFilePondInit: function () {
-      console.log("FilePond has initialized");
-
-      // FilePond instance methods are available on `this.$refs.pond`
-    },
-  },
-  components: {
-    FilePond,
-  },
-};
+    console.log('Données récupéré avec succès');
+    return randomId;
+  } catch (error) {
+    console.error('Erreur lors de la récupération de l\'id unique : ', error);
+  }
+}
 </script>

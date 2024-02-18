@@ -45,6 +45,9 @@ const virtualTourData = ref<VirtualTourDataItem[]>([]);
 const virtualTourAutomaticData = ref<VirtualTourAnimationDataItem[]>([]);
 const virtualTourAnimationIndex = ref(0);
 const clientInteraction = ref(false);
+const speedAnimation = 5;
+const timeAnimation = 5000;
+let animationStartTimeoutId: ReturnType<typeof setTimeout>;
 
 const projection = new EquirectProjection({
   src: "/360_mock.jpg",
@@ -62,7 +65,7 @@ async function sendData() {
 
   // Envoyez les données à l'API
   try {
-    const response = await $fetch('virtualTour/save/', {
+    const response = await $fetch('virtualTour/', {
       method: 'POST',
       body: dataSliced,
       baseURL: 'http://localhost:3001/',
@@ -76,9 +79,10 @@ async function sendData() {
 
 async function fetchData() {
   try {
-    const response: VirtualTourAnimationDataItem[] = await $fetch('virtualTour/1/', {
+    const response: VirtualTourAnimationDataItem[] = await $fetch('virtualTour/', {
       method: 'GET',
       baseURL: 'http://localhost:3001/',
+      body: { virtualTourId: '1' },
     });
 
     virtualTourAutomaticData.value = response;
@@ -90,16 +94,20 @@ async function fetchData() {
 
 function startAnimationVirtualTour() {
   setTimeout(() => {
-    setInterval(AnimateVirtualTour, 2000);
-  }, 5000);
+    setInterval(AnimateVirtualTour, timeAnimation / speedAnimation);
+  }, 1);
 }
 
 async function AnimateVirtualTour() {
   if (clientInteraction.value || virtualTourAutomaticData.value.length === 0) return;
   if (virtualTourAnimationIndex.value >= virtualTourAutomaticData.value.length) return;
   const nextView: VirtualTourAnimationDataItem = virtualTourAutomaticData.value[virtualTourAnimationIndex.value]
-  viewer.value.view360.camera.animateTo({ yaw: nextView.position.yaw, pitch: nextView.position.pitch, zoom: nextView.position.zoom, duration: 2000, easing: "easeInOutCubic"});
+  viewer.value.view360.camera.animateTo({ yaw: nextView.position.yaw, pitch: nextView.position.pitch, zoom: nextView.position.zoom, duration: timeAnimation/speedAnimation, easing: animationPersonnaliser});
   virtualTourAnimationIndex.value++;
+}
+
+function animationPersonnaliser(x: number): number {
+return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
 }
 
 onMounted(async () => {
@@ -116,11 +124,12 @@ onMounted(async () => {
 
 function onMouseDown() {
   clientInteraction.value = true;
+  clearTimeout(animationStartTimeoutId);
 }
 
 function onMouseUp() {
   // await 2 seconds before set to false
-  setTimeout(() => {
+  animationStartTimeoutId = setTimeout(() => {
     clientInteraction.value = false;
   }, 5000);
 }
