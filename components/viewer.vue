@@ -1,7 +1,7 @@
 <template>
   <div class="full-size">
     <View360 class="full-size" ref="viewer" :debug="true" :projection="projection" :on-view-change="onViewChange"
-      :on-ready="onReady" :hotspot="{ zoom: true }" :fov="80">
+      :hotspot="{ zoom: true }" :fov="80">
       <div class="view360-hotspots">
         <!-- Hotspots -->
         <div class="view360-hotspot" data-yaw="0" data-pitch="0">1</div>
@@ -24,7 +24,6 @@
 </template>
 <script setup lang="ts">
 import { View360, EquirectProjection, ViewChangeEvent } from "@egjs/vue3-view360";
-import { DefineComponent } from "nuxt/dist/app/compat/capi";
 
 interface VirtualTourDataItem {
   time: Date;
@@ -34,9 +33,18 @@ interface VirtualTourDataItem {
   zoom: number;
 }
 
+interface VirtualTourAnimationDataItem {
+  position: {
+    yaw: number;
+    pitch: number;
+    zoom: number;
+  };
+}
+
 const virtualTourData = ref<VirtualTourDataItem[]>([]);
-const virtualTourAutomaticData = ref<VirtualTourDataItem[]>([]);
+const virtualTourAutomaticData = ref<VirtualTourAnimationDataItem[]>([]);
 const virtualTourAnimationIndex = ref(0);
+const clientInteraction = ref(false);
 
 const projection = new EquirectProjection({
   src: "/360_mock.jpg",
@@ -68,7 +76,7 @@ async function sendData() {
 
 async function fetchData() {
   try {
-    const response: any = await $fetch('virtualTour/1/', {
+    const response: VirtualTourAnimationDataItem[] = await $fetch('virtualTour/1/', {
       method: 'GET',
       baseURL: 'http://localhost:3001/',
     });
@@ -81,22 +89,23 @@ async function fetchData() {
 }
 
 function startAnimationVirtualTour() {
-  console.log('lookAt');
-  console.log(viewer.value.view360.camera);
-  viewer.value.view360.camera.animateTo({yax: 270, pitch:270, zoom:1,duration: 2000});
-  // viewer.value.view360.zoom = 20;
-  // viewer.value.view360.lookAt('90', '90', '90', '1000');
-// setInterval(AnimateVirtualTour, 1000);
+  setTimeout(() => {
+    setInterval(AnimateVirtualTour, 2000);
+  }, 5000);
 }
 
 async function AnimateVirtualTour() {
-  const nextView: VirtualTourDataItem = virtualTourAutomaticData.value[virtualTourAnimationIndex.value]
-  return { yaw: nextView.yaw, pitch: nextView.pitch, fov: 90, delay: 1000 };
+  if (clientInteraction.value || virtualTourAutomaticData.value.length === 0) return;
+  if (virtualTourAnimationIndex.value >= virtualTourAutomaticData.value.length) return;
+  const nextView: VirtualTourAnimationDataItem = virtualTourAutomaticData.value[virtualTourAnimationIndex.value]
+  viewer.value.view360.camera.animateTo({ yaw: nextView.position.yaw, pitch: nextView.position.pitch, zoom: nextView.position.zoom, duration: 2000, easing: "easeInOutCubic"});
   virtualTourAnimationIndex.value++;
 }
 
 onMounted(async () => {
   viewer.value.view360.on("viewChange", onViewChange);
+  viewer.value.view360.on("inputStart", onMouseDown);
+  viewer.value.view360.on("inputEnd", onMouseUp);
   const sendingInterval = setInterval(sendData, 1000);
   await fetchData();
   onUnmounted(() => {
@@ -105,12 +114,21 @@ onMounted(async () => {
 
 });
 
+function onMouseDown() {
+  clientInteraction.value = true;
+}
+
+function onMouseUp() {
+  // await 2 seconds before set to false
+  setTimeout(() => {
+    clientInteraction.value = false;
+  }, 5000);
+}
+
 
 function onViewChange(evt: ViewChangeEvent) {
+  if (!clientInteraction.value) return;
   StockPosition(evt.yaw, evt.pitch, evt.zoom);
-};
-function onReady() {
-  console.log("ready");
 };
 
 function StockPosition(yaw: number, pitch: number, zoom: number): void {
