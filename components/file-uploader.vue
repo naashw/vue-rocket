@@ -35,11 +35,13 @@ const FilePond = vueFilePond(FilePondPluginFileValidateType, FilePondPluginImage
 export default {
     name: "VisiteIci",
     props: {
-        virtualTourId: {
-            type: String,
-            default: "dzadza",
+            virtualTourId: {
+                type: Object,
+                validator: function(value) {
+                    return typeof value.key === 'string' && typeof value.checksum === 'string';
+                }
+            },
         },
-    },
     data: function () {
         return { myFiles: [] };
     },
@@ -62,7 +64,8 @@ export default {
                     method: "POST",
                     headers: {
                         "X-CSRF-TOKEN": "CSFR-Token",
-                        "Virtual-Tour-Id": this.virtualTourId,
+                        "Virtual-Tour-Id": this.virtualTourId.key,
+                        "Virtual-Tour-Id-Checksum": this.virtualTourId.checksum,
                     },
                     withCredentials: false,
                     onload: (response) => response.key,

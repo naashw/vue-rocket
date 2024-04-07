@@ -16,7 +16,7 @@
             It doesn't matter what content you put inside the hotspot or what
             size you have.
           </div>
-          <img src="SOME_IMG_URL" alt="Of course, you can display images." />
+          <!-- <img src="SOME_IMG_URL" alt="Of course, you can display images." /> -->
         </div>
       </div>
     </View360>
@@ -27,7 +27,7 @@ import { View360, EquirectProjection, ViewChangeEvent } from "@egjs/vue3-view360
 
 interface VirtualTourDataItem {
   time: Date;
-  virtualTourId: string;
+  virtualTourRoomId: string;
   yaw: number;
   pitch: number;
   zoom: number;
@@ -79,10 +79,10 @@ async function sendData() {
 
 async function fetchData() {
   try {
-    const response: VirtualTourAnimationDataItem[] = await $fetch('virtualTour/', {
+    const virtualTourRoomId = '1';
+    const response: VirtualTourAnimationDataItem[] = await $fetch(`virtualTour/fetch/${virtualTourRoomId}`, {
       method: 'GET',
       baseURL: 'http://localhost:3001/',
-      body: { virtualTourId: '1' },
     });
 
     virtualTourAutomaticData.value = response;
@@ -143,7 +143,7 @@ function onViewChange(evt: ViewChangeEvent) {
 function StockPosition(yaw: number, pitch: number, zoom: number): void {
   virtualTourData.value.push({
     time: new Date(),
-    virtualTourId: '1',
+    virtualTourRoomId: '1',
     yaw,
     pitch,
     zoom,
