@@ -1,14 +1,16 @@
 <template>
     <div id="app">
-        <file-pond
-            name="files"
-            ref="pond"
-            label-idle="Drop files here..."
-            :allow-multiple="true"
-            accepted-file-types="image/jpeg, image/png"
-            v-bind:files="myFiles"
-            v-on:init="handleFilePondInit"
-        />
+        <div v-if="this.virtualTourId.key">
+            <file-pond
+                name="files"
+                ref="pond"
+                label-idle="Drop files here..."
+                :allow-multiple="true"
+                accepted-file-types="image/jpeg, image/png"
+                v-bind:files="myFiles"
+                v-on:init="handleFilePondInit"
+            />
+        </div>
     </div>
 </template>
 
@@ -28,6 +30,7 @@ import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.min.css
 // Import image preview and file type validation plugins
 import FilePondPluginFileValidateType from "filepond-plugin-file-validate-type";
 import FilePondPluginImagePreview from "filepond-plugin-image-preview";
+import { validateVirtualTourId } from "~/validators/virtualTourId.validator";
 
 // Create component
 const FilePond = vueFilePond(FilePondPluginFileValidateType, FilePondPluginImagePreview);
@@ -35,13 +38,14 @@ const FilePond = vueFilePond(FilePondPluginFileValidateType, FilePondPluginImage
 export default {
     name: "VisiteIci",
     props: {
-            virtualTourId: {
-                type: Object,
-                validator: function(value) {
-                    return typeof value.key === 'string' && typeof value.checksum === 'string';
-                }
+        virtualTourId: {
+            type: Object,
+            require: true,
+            validator: (propValue) => {
+                return validateVirtualTourId(propValue);
             },
         },
+    },
     data: function () {
         return { myFiles: [] };
     },
@@ -55,7 +59,7 @@ export default {
         FilePond,
     },
     mounted() {
-        console.log("virtualTourId:", this.virtualTourId);
+        console.log("virtualTourId mounted : ", this.virtualTourId);
         setOptions({
             server: {
                 url: "http://localhost:3001",
