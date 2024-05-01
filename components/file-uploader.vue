@@ -8,7 +8,9 @@
                 :allow-multiple="true"
                 accepted-file-types="image/jpeg, image/png"
                 v-bind:files="myFiles"
-                v-on:init="handleFilePondInit"
+                @init="handleFilePondInit"
+                @initfile="handleInitFile"
+                @processfile="handleFileUploaded"
             />
         </div>
     </div>
@@ -54,6 +56,17 @@ export default {
             console.log("FilePond has initialized");
             // FilePond instance methods are available on `this.$refs.pond`
         },
+        handleInitFile() {
+            console.log("handleInitFile");
+        },
+        handleFileUploaded() {
+            console.log("handleFileUploaded");
+            // go to route /virtualTour/:id where :id is the virtualTourId.key
+            const virtualTourIdKey = this.virtualTourId.key;
+            console.log('go to key : ', virtualTourIdKey)
+            this.$router.push(`/virtualTour/${virtualTourIdKey}`);
+        },
+
     },
     components: {
         FilePond,

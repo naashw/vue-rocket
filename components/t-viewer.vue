@@ -1,6 +1,5 @@
 <template>
-    <div v-if="projectionIsReady">
-        <div class="full-size">
+        <div class="full-size" v-if="projectionIsReady">
             <View360
                 class="full-size"
                 ref="viewer"
@@ -28,11 +27,34 @@
                     </div>
                 </div>
             </View360>
-        </div>
     </div>
 </template>
 <script setup lang="ts">
 import { View360, EquirectProjection, ViewChangeEvent } from "@egjs/vue3-view360";
+
+interface VirtualTour {
+    createdAt: Date;
+    deletedAt: Date;
+    updatedAt: Date;
+    id: string;
+    virtualTourId: string;
+    virtualTourRoom: VirtualTourRoom[];
+}
+
+interface VirtualTourRoom {
+    virtualTourId: string;
+    id: string;
+    name: string;
+    pictures: VirtualTourPicture[];
+    positions: VirtualTourAnimationDataItem[];
+}
+
+interface VirtualTourPicture {
+    id: string;
+    virtualTourRoomId: string;
+    filePath: string;
+    filename: string;
+}
 
 interface VirtualTourDataItem {
     time: Date;
@@ -58,14 +80,17 @@ const speedAnimation = 5;
 const timeAnimation = 5000;
 let animationStartTimeoutId: ReturnType<typeof setTimeout>;
 
-const projection = new EquirectProjection({
-    src: "/360_mock.jpg",
-});
-
 const projectionIsReady = ref(false);
-const projectionRef = ref<EquirectProjection | null>(null);
+let projection: EquirectProjection;
 
 const viewer = ref(View360);
+
+//get props id
+const props = defineProps<{
+    virtualTourId: string;
+}>();
+
+console.log('props', props.virtualTourId)
 
 async function sendData() {
     // Vérifiez s'il y a des données à envoyer
@@ -91,8 +116,8 @@ async function sendData() {
 
 async function fetchData() {
     try {
-        const virtualTourRoomId = "3ZIekmPFq1gL"; // TODO : Remplacez par l'identifiant de la pièce
-        const response: VirtualTourAnimationDataItem[] = await $fetch(
+        const virtualTourRoomId = props.virtualTourId; // TODO : Remplacez par l'identifiant de la pièce
+        const virtualTour: VirtualTour = await $fetch(
             `virtualTour/id/${virtualTourRoomId}`,
             {
                 method: "GET",
@@ -100,28 +125,36 @@ async function fetchData() {
             },
         );
 
-        virtualTourAutomaticData.value = response;
-        updateVirtualTourData();
+        // virtualTourAutomaticData.value = response;
+        await updateVirtualTourData(virtualTour);
         startAnimationVirtualTour();
     } catch (error) {
         console.error("Erreur lors de la récupération des données :", error);
     }
 }
 
-async function updateVirtualTourData() {
-    projectionRef.value = new EquirectProjection({
-        src: "/360_mock.jpg",
+async function updateVirtualTourData(virtualTour: VirtualTour) {
+    console.dir(virtualTour.virtualTourRoom);
+    const firstpics = virtualTour?.virtualTourRoom[0]?.pictures[0]?.filePath;
+    console.log("First picture: ", firstpics)
+    const picsFullPath = "http://localhost:3001" + firstpics;
+    console.log("First picture full path: ", picsFullPath)
+    projection = new EquirectProjection({
+        src: picsFullPath,
     });
-    projectionIsReady.value = true;
-    console.log("Projection is ready")
 
-    viewer.value.view360.on("viewChange", onViewChange);
-    viewer.value.view360.on("inputStart", onMouseDown);
-    viewer.value.view360.on("inputEnd", onMouseUp);
-    const sendingInterval = setInterval(sendData, 1000);
-    onUnmounted(() => {
-        clearInterval(sendingInterval);
-    });
+    console.log(projection)
+
+    //wait 2 sec
+    console.log("Projection is ready")
+    projectionIsReady.value = true;
+    // viewer.value.view360.on("viewChange", onViewChange);
+    // viewer.value.view360.on("inputStart", onMouseDown);
+    // viewer.value.view360.on("inputEnd", onMouseUp);
+    // const sendingInterval = setInterval(sendData, 1000);
+    // onUnmounted(() => {
+    //     clearInterval(sendingInterval);
+    // });
 }
 
 function startAnimationVirtualTour() {

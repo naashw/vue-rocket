@@ -1,12 +1,18 @@
 <template>
   <div class="full-size-page centered">
     <div class="full-size-viewer">
-      <Viewer />
+      <t-viewer
+      :virtualTourId
+      />
     </div>
   </div>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+
+const route = useRoute();
+const virtualTourId = route.params.id as string;
+</script>
 
 <style scoped>
 .full-size-viewer {
