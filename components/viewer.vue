@@ -1,32 +1,34 @@
 <template>
-    <div class="full-size">
-        <View360
-            class="full-size"
-            ref="viewer"
-            :debug="true"
-            :projection="projection"
-            :on-view-change="onViewChange"
-            :hotspot="{ zoom: true }"
-            :fov="80"
-        >
-            <div class="view360-hotspots">
-                <!-- Hotspots -->
-                <div class="view360-hotspot" data-yaw="0" data-pitch="0">1</div>
-                <!-- You can use either Yaw(Y-axis rotation), Pitch(X-axis rotation) for hotspot position -->
-                <div class="view360-hotspot" data-yaw="2" data-pitch="0">2</div>
-                <!-- You can also use direct 3D coordinates. -->
-                <div class="view360-hotspot" data-position="0 1 0">3</div>
-                <!-- View 360 only places the hotspot in the appropriate location. -->
-                <!-- You can decorate your hotspots however you want! -->
-                <div class="view360-hotspot" data-yaw="-90" data-pitch="-90">
-                    <div>
-                        It doesn't matter what content you put inside the hotspot or what
-                        size you have.
+    <div v-if="projectionIsReady">
+        <div class="full-size">
+            <View360
+                class="full-size"
+                ref="viewer"
+                :debug="true"
+                :projection="projection"
+                :on-view-change="onViewChange"
+                :hotspot="{ zoom: true }"
+                :fov="80"
+            >
+                <div class="view360-hotspots">
+                    <!-- Hotspots -->
+                    <div class="view360-hotspot" data-yaw="0" data-pitch="0">1</div>
+                    <!-- You can use either Yaw(Y-axis rotation), Pitch(X-axis rotation) for hotspot position -->
+                    <div class="view360-hotspot" data-yaw="2" data-pitch="0">2</div>
+                    <!-- You can also use direct 3D coordinates. -->
+                    <div class="view360-hotspot" data-position="0 1 0">3</div>
+                    <!-- View 360 only places the hotspot in the appropriate location. -->
+                    <!-- You can decorate your hotspots however you want! -->
+                    <div class="view360-hotspot" data-yaw="-90" data-pitch="-90">
+                        <div>
+                            It doesn't matter what content you put inside the hotspot or
+                            what size you have.
+                        </div>
+                        <!-- <img src="SOME_IMG_URL" alt="Of course, you can display images." /> -->
                     </div>
-                    <!-- <img src="SOME_IMG_URL" alt="Of course, you can display images." /> -->
                 </div>
-            </div>
-        </View360>
+            </View360>
+        </div>
     </div>
 </template>
 <script setup lang="ts">
@@ -60,6 +62,9 @@ const projection = new EquirectProjection({
     src: "/360_mock.jpg",
 });
 
+const projectionIsReady = ref(false);
+const projectionRef = ref<EquirectProjection | null>(null);
+
 const viewer = ref(View360);
 
 async function sendData() {
@@ -86,9 +91,9 @@ async function sendData() {
 
 async function fetchData() {
     try {
-        const virtualTourRoomId = "0f76ae11-2453-4ced-a8a0-67c1813c9841"; // TODO : Remplacez par l'identifiant de la pièce
+        const virtualTourRoomId = "3ZIekmPFq1gL"; // TODO : Remplacez par l'identifiant de la pièce
         const response: VirtualTourAnimationDataItem[] = await $fetch(
-            `virtualTour/fetch/${virtualTourRoomId}`,
+            `virtualTour/id/${virtualTourRoomId}`,
             {
                 method: "GET",
                 baseURL: "http://localhost:3001/",
@@ -96,10 +101,27 @@ async function fetchData() {
         );
 
         virtualTourAutomaticData.value = response;
+        updateVirtualTourData();
         startAnimationVirtualTour();
     } catch (error) {
         console.error("Erreur lors de la récupération des données :", error);
     }
+}
+
+async function updateVirtualTourData() {
+    projectionRef.value = new EquirectProjection({
+        src: "/360_mock.jpg",
+    });
+    projectionIsReady.value = true;
+    console.log("Projection is ready")
+
+    viewer.value.view360.on("viewChange", onViewChange);
+    viewer.value.view360.on("inputStart", onMouseDown);
+    viewer.value.view360.on("inputEnd", onMouseUp);
+    const sendingInterval = setInterval(sendData, 1000);
+    onUnmounted(() => {
+        clearInterval(sendingInterval);
+    });
 }
 
 function startAnimationVirtualTour() {
@@ -128,14 +150,7 @@ function animationPersonnaliser(x: number): number {
 }
 
 onMounted(async () => {
-    viewer.value.view360.on("viewChange", onViewChange);
-    viewer.value.view360.on("inputStart", onMouseDown);
-    viewer.value.view360.on("inputEnd", onMouseUp);
-    const sendingInterval = setInterval(sendData, 1000);
     await fetchData();
-    onUnmounted(() => {
-        clearInterval(sendingInterval);
-    });
 });
 
 function onMouseDown() {
@@ -158,7 +173,7 @@ function onViewChange(evt: ViewChangeEvent) {
 function StockPosition(yaw: number, pitch: number, zoom: number): void {
     virtualTourData.value.push({
         time: new Date(),
-        virtualTourRoomId: "0f76ae11-2453-4ced-a8a0-67c1813c9841",  // TODO : Remplacez par l'identifiant de la pièce
+        virtualTourRoomId: "0f76ae11-2453-4ced-a8a0-67c1813c9841", // TODO : Remplacez par l'identifiant de la pièce
         yaw,
         pitch,
         zoom,
