@@ -29,7 +29,7 @@
             <div class="flex h-full w-full items-end">
                 <div class="collapse">
                     <input type="checkbox" />
-                    <div class="collapse-title text-xl font-medium w-full">
+                    <div class="collapse-title text-xl font-medium w-full text-white">
                         Click me to show/hide content
                     </div>
                     <div class="flex w-full collapse-content">
@@ -37,7 +37,9 @@
                             v-for="room in virtualTour.virtualTourRoom"
                             class="relative p-2 bg-black"
                         >
-                            <div class="h-full w-full bg-black">
+                            <div
+                            class="h-full w-full bg-black"
+                            @click="setVirtualTourRoom(room)">
                                 <img
                                     :src="getFullPath(room.pictures[0].filePath)"
                                     alt=""
@@ -104,7 +106,7 @@ const timeAnimation = 5000;
 let animationStartTimeoutId: ReturnType<typeof setTimeout>;
 
 const projectionIsReady = ref(false);
-let projection: EquirectProjection;
+let projection: Ref<EquirectProjection | null> = ref(null);
 
 const viewer = ref(View360);
 
@@ -142,6 +144,17 @@ async function startVirtualTour(virtualTour: VirtualTour) {
     }
 }
 
+async function setVirtualTourRoom(virtualTourRoom: VirtualTourRoom) {
+    const firstpics = virtualTourRoom?.pictures[0]?.filePath;
+    console.log("Set virtual tour room", firstpics);
+    const picsFullPath = "http://localhost:3001" + firstpics;
+    projection.value = new EquirectProjection({
+        src: picsFullPath,
+    });
+
+//    projection = getFullPath(virtualTourRoom.pictures[0].filePath)
+}
+
 async function setUpVirtualTour(virtualTour: VirtualTour) {
     console.dir(virtualTour.virtualTourRoom);
     const firstpics = virtualTour?.virtualTourRoom[0]?.pictures[0]?.filePath;
@@ -149,7 +162,7 @@ async function setUpVirtualTour(virtualTour: VirtualTour) {
     console.log("First picture: ", firstpics);
     const picsFullPath = "http://localhost:3001" + firstpics;
     console.log("First picture full path: ", picsFullPath);
-    projection = new EquirectProjection({
+    projection.value = new EquirectProjection({
         src: picsFullPath,
     });
 
@@ -158,9 +171,9 @@ async function setUpVirtualTour(virtualTour: VirtualTour) {
     //wait 2 sec
     console.log("Projection is ready");
     projectionIsReady.value = true;
-    // viewer.value.view360.on("viewChange", onViewChange);
-    // viewer.value.view360.on("inputStart", onMouseDown);
-    // viewer.value.view360.on("inputEnd", onMouseUp);
+    // viewer.view360.on("viewChange", onViewChange);
+    // viewer.view360.on("inputStart", onMouseDown);
+    // viewer.view360.on("inputEnd", onMouseUp);
     // const sendingInterval = setInterval(sendData, 1000);
     // onUnmounted(() => {
     //     clearInterval(sendingInterval);
