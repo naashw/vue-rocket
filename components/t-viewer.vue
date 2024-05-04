@@ -38,8 +38,9 @@
                             class="relative p-2 bg-black"
                         >
                             <div
-                            class="h-full w-full bg-black"
-                            @click="setVirtualTourRoom(room)">
+                                class="h-full w-full bg-black"
+                                @click="setVirtualTourRoom(room)"
+                            >
                                 <img
                                     :src="getFullPath(room.pictures[0].filePath)"
                                     alt=""
@@ -106,7 +107,7 @@ const timeAnimation = 5000;
 let animationStartTimeoutId: ReturnType<typeof setTimeout>;
 
 const projectionIsReady = ref(false);
-let projection: Ref<EquirectProjection | null> = ref(null);
+let projection: Ref<EquirectProjection>;
 
 const viewer = ref(View360);
 
@@ -152,7 +153,7 @@ async function setVirtualTourRoom(virtualTourRoom: VirtualTourRoom) {
         src: picsFullPath,
     });
 
-//    projection = getFullPath(virtualTourRoom.pictures[0].filePath)
+    //    projection = getFullPath(virtualTourRoom.pictures[0].filePath)
 }
 
 async function setUpVirtualTour(virtualTour: VirtualTour) {
@@ -162,9 +163,11 @@ async function setUpVirtualTour(virtualTour: VirtualTour) {
     console.log("First picture: ", firstpics);
     const picsFullPath = "http://localhost:3001" + firstpics;
     console.log("First picture full path: ", picsFullPath);
-    projection.value = new EquirectProjection({
-        src: picsFullPath,
-    });
+    projection = ref(
+        new EquirectProjection({
+            src: picsFullPath,
+        }),
+    );
 
     console.log(projection);
 
