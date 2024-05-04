@@ -49,7 +49,7 @@ export default {
         },
     },
     data: function () {
-        return { myFiles: [] };
+        return { myFiles: [], numberOfFiles: 0, filesSuccessfullUploaded: 0};
     },
     methods: {
         handleFilePondInit: function () {
@@ -58,15 +58,20 @@ export default {
         },
         handleInitFile() {
             console.log("handleInitFile");
+            this.numberOfFiles++;
+            console.log('file init', this.numberOfFiles)
         },
         handleFileUploaded() {
             console.log("handleFileUploaded");
+            this.filesSuccessfullUploaded++;
             // go to route /virtualTour/:id where :id is the virtualTourId.key
             const virtualTourIdKey = this.virtualTourId.key;
             console.log('go to key : ', virtualTourIdKey)
-            this.$router.push(`/virtualTour/${virtualTourIdKey}`);
+            console.log(this.numberOfFiles);
+            if(this.numberOfFiles === this.filesSuccessfullUploaded){
+                this.$router.push(`/virtualTour/${virtualTourIdKey}`);
+            }
         },
-
     },
     components: {
         FilePond,

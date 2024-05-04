@@ -1,17 +1,23 @@
 <template>
   <div class="full-size-page centered">
-    <div class="full-size-viewer">
+    <div class="w-[80vw] h-[80vh]" v-if="virtualTour">
       <t-viewer
-      :virtualTourId
+      :virtualTour
       />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { VirtualTour } from '~/types/virtualTour.type';
+import { getFullPath } from '~/composables/picture.composable';
+
 
 const route = useRoute();
 const virtualTourId = route.params.id as string;
+
+const virtualTour: VirtualTour = await fetchVirtualTourById(virtualTourId);
+const virtualTourRooms = virtualTour.virtualTourRoom;
 </script>
 
 <style scoped>

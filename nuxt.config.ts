@@ -7,8 +7,14 @@ export default defineNuxtConfig({
       enabled: true
     }
   },
+  postcss: {
+    plugins: {
+      tailwindcss: {},
+      autoprefixer: {},
+    },
+  },
   ssr: false,
-  css: ["~/assets/css/view360.css"],
+  css: ["~/assets/css/view360.css", "~/assets/css/main.css"],
 
   runtimeConfig: {
     public: {
