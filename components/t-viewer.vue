@@ -30,18 +30,19 @@
                 <div class="collapse">
                     <input type="checkbox" />
                     <div class="collapse-title text-xl font-medium w-full text-white">
-                        Click me to show/hide content
+                        Cliquez ici pour voir les autres pièces
                     </div>
-                    <div class="flex w-full collapse-content">
+                    <div class="collapse-content flex p-[1rem] gap-[1rem] bg-black/[.75] rounded-md snap-x overflow-x-auto">
                         <div
                             v-for="room in virtualTour.virtualTourRoom"
-                            class="relative p-2 bg-black"
+                            class="snap-center h-full w-full"
                         >
                             <div
-                                class="h-full w-full bg-black"
                                 @click="setVirtualTourRoom(room)"
+                                class="max-w-[250px]"
                             >
                                 <img
+                                    class="h-[150px] max-w-[250px] object-cover rounded-md"
                                     :src="getFullPath(room.pictures[0].filePath)"
                                     alt=""
                                 />
@@ -146,11 +147,11 @@ async function startVirtualTour(virtualTour: VirtualTour) {
 }
 
 async function setVirtualTourRoom(virtualTourRoom: VirtualTourRoom) {
-    const firstpics = virtualTourRoom?.pictures[0]?.filePath;
-    console.log("Set virtual tour room", firstpics);
-    const picsFullPath = "http://localhost:3001" + firstpics;
+    const filepath = virtualTourRoom.pictures[0].filePath;
+    const fullPath = getFullPath(filepath);
+    console.log("Set virtual tour room", fullPath);
     projection.value = new EquirectProjection({
-        src: picsFullPath,
+        src: fullPath,
     });
 
     //    projection = getFullPath(virtualTourRoom.pictures[0].filePath)

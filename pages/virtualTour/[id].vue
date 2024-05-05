@@ -1,41 +1,40 @@
 <template>
-  <div class="full-size-page centered">
-    <div class="w-[80vw] h-[80vh]" v-if="virtualTour">
-      <t-viewer
-      :virtualTour
-      />
+    <div class=" centered">
+        <div class="w-[95vw] h-[95vh]" v-if="virtualTour">
+            <t-viewer :virtualTour />
+        </div>
     </div>
-  </div>
 </template>
 
 <script setup lang="ts">
-import { VirtualTour } from '~/types/virtualTour.type';
-import { getFullPath } from '~/composables/picture.composable';
-
+import { VirtualTour } from "~/types/virtualTour.type";
 
 const route = useRoute();
+const router = useRouter();
 const virtualTourId = route.params.id as string;
-
 const virtualTour: VirtualTour = await fetchVirtualTourById(virtualTourId);
-const virtualTourRooms = virtualTour.virtualTourRoom;
+
+    if (!virtualTour) {
+        router.push("/");
+    }
 </script>
 
 <style scoped>
 .full-size-viewer {
-  width: 90%;
-  height: 80%;
-  aspect-ratio: 1 / 1;
-  display: flex;
-  justify-content: center;
+    width: 90%;
+    height: 80%;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    justify-content: center;
 }
 
 .full-size-page {
-  width: 99vw;
-  height: 93vh;
+    width: 99vw;
+    height: 93vh;
 }
 .centered {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 </style>
