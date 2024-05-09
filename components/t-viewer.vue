@@ -1,13 +1,30 @@
 <template>
-    <div class="size-full bg-black p-1" v-if="projectionIsReady">
+    <div class="size-full bg-[primary] p-1 flex" v-if="projectionIsReady">
+        <div class="max-h-[100vh] max-w-[250px] overflow-y-auto">
+            <div
+                class="flex flex-col p-[1rem] gap-[1rem] rounded-md snap-x"
+            >
+                <div v-for="room in virtualTour.virtualTourRoom" class="snap-center">
+                    <div @click="setVirtualTourRoom(room)" class="cursor-pointer">
+                        <img
+                            class="h-[150px] object-cover rounded-md"
+                            :src="getFullPath(room.pictures[0].filePath)"
+                            alt=""
+                        />
+                    </div>
+                </div>
+            </div>
+        </div>
         <View360
             class="w-full h-full"
             ref="viewer"
             :debug="true"
             :projection="projection"
             :on-view-change="onViewChange"
+            :on-input-start="onMouseDown"
+            :on-input-end="onMouseUp"
             :hotspot="{ zoom: true }"
-            :fov="80"
+            :fov="110"
         >
             <div class="view360-hotspots">
                 <!-- Hotspots -->
@@ -24,31 +41,6 @@
                         size you have.
                     </div>
                     <!-- <img src="SOME_IMG_URL" alt="Of course, you can display images." /> -->
-                </div>
-            </div>
-            <div class="flex h-full w-full items-end">
-                <div class="collapse">
-                    <input type="checkbox" />
-                    <div class="collapse-title text-xl font-medium w-full text-white">
-                        Cliquez ici pour voir les autres pièces
-                    </div>
-                    <div class="collapse-content flex p-[1rem] gap-[1rem] bg-black/[.75] rounded-md snap-x overflow-x-auto">
-                        <div
-                            v-for="room in virtualTour.virtualTourRoom"
-                            class="snap-center h-full w-full"
-                        >
-                            <div
-                                @click="setVirtualTourRoom(room)"
-                                class="max-w-[250px]"
-                            >
-                                <img
-                                    class="h-[150px] max-w-[250px] object-cover rounded-md"
-                                    :src="getFullPath(room.pictures[0].filePath)"
-                                    alt=""
-                                />
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </View360>
@@ -139,11 +131,14 @@ async function sendVirtualTourRoomPositions() {
 async function startVirtualTour(virtualTour: VirtualTour) {
     try {
         await setUpVirtualTour(virtualTour);
-        startAnimationVirtualTour();
     } catch (error) {
         console.error("Erreur lors de la récupération des données :", error);
         router.push(`/`);
     }
+
+    startAnimationVirtualTour();
+    startUpVirtualTourZoom();
+    setupVirtualTourDataAutomatic();
 }
 
 async function setVirtualTourRoom(virtualTourRoom: VirtualTourRoom) {
@@ -153,17 +148,13 @@ async function setVirtualTourRoom(virtualTourRoom: VirtualTourRoom) {
     projection.value = new EquirectProjection({
         src: fullPath,
     });
-
+    startUpVirtualTourZoom();
     //    projection = getFullPath(virtualTourRoom.pictures[0].filePath)
 }
 
-async function setUpVirtualTour(virtualTour: VirtualTour) {
-    console.dir(virtualTour.virtualTourRoom);
+async function setUpVirtualTour(virtualTour: VirtualTour): Promise<void> {
     const firstpics = virtualTour?.virtualTourRoom[0]?.pictures[0]?.filePath;
-    console.dir(virtualTour.virtualTourRoom);
-    console.log("First picture: ", firstpics);
     const picsFullPath = "http://localhost:3001" + firstpics;
-    console.log("First picture full path: ", picsFullPath);
     projection = ref(
         new EquirectProjection({
             src: picsFullPath,
@@ -172,16 +163,33 @@ async function setUpVirtualTour(virtualTour: VirtualTour) {
 
     console.log(projection);
 
-    //wait 2 sec
-    console.log("Projection is ready");
-    projectionIsReady.value = true;
-    // viewer.view360.on("viewChange", onViewChange);
-    // viewer.view360.on("inputStart", onMouseDown);
-    // viewer.view360.on("inputEnd", onMouseUp);
-    // const sendingInterval = setInterval(sendData, 1000);
-    // onUnmounted(() => {
-    //     clearInterval(sendingInterval);
-    // });
+        // wait 500ms
+        console.log("Projection is ready");
+        projectionIsReady.value = true;
+    return await new Promise((resolve) => setTimeout(resolve, 500));
+}
+
+function setupVirtualTourDataAutomatic(){
+    console.log(viewer.value)
+    viewer.value.on("inputStart", onMouseDown);
+    viewer.value.on("inputEnd", onMouseUp);
+    viewer.value.on("viewChange", onViewChange);
+    const sendingInterval = setInterval(sendVirtualTourRoomPositions, 1000);
+    onUnmounted(() => {
+        clearInterval(sendingInterval);
+    });
+}
+
+async function startUpVirtualTourZoom(){
+    console.log("Start up virtual tour zoom");
+    console.log(viewer.value);
+        viewer.value.camera.animateTo({
+        yaw: 0,
+        pitch: 0,
+        zoom: 0.6,
+        duration: 1000,
+        easing: animationPersonnaliser,
+    });
 }
 
 function startAnimationVirtualTour() {
@@ -210,11 +218,13 @@ function animationPersonnaliser(x: number): number {
 }
 
 function onMouseDown() {
+    console.log('mousedown')
     clientInteraction.value = true;
     clearTimeout(animationStartTimeoutId);
 }
 
 function onMouseUp() {
+    console.log('mouseup')
     // await 2 seconds before set to false
     animationStartTimeoutId = setTimeout(() => {
         clientInteraction.value = false;
@@ -222,6 +232,7 @@ function onMouseUp() {
 }
 
 function onViewChange(evt: ViewChangeEvent) {
+    console.log('viewchange')
     if (!clientInteraction.value) return;
     const time = new Date();
     const virtualTourRoomId = props.virtualTour.id;

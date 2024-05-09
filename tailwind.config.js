@@ -9,7 +9,12 @@ module.exports = {
         "./error.vue",
     ],
     theme: {
-        extend: {},
+        extend: {
+            colors: {
+                'primary': '#243c5a',
+                'secondary': '#243c5a',
+            },
+        },
     },
     plugins: [require('daisyui')],
 }

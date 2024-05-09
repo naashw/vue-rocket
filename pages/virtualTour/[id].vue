@@ -1,6 +1,6 @@
 <template>
     <div class=" centered">
-        <div class="w-[95vw] h-[95vh]" v-if="virtualTour">
+        <div class="w-[100vw] h-[100vh]" v-if="virtualTour">
             <t-viewer :virtualTour />
         </div>
     </div>
