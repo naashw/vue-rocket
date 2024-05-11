@@ -39,7 +39,6 @@ onBeforeMount(async () => {
         }
         virtualTourId.value = randomId;
         keyRecoveringStatus.value = keyState.SUCCESS;
-        ("");
     } catch (error) {
         console.error(error);
         keyRecoveringStatus.value = keyState.ERROR;
