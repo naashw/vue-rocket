@@ -9,9 +9,13 @@
                 accepted-file-types="image/jpeg, image/png"
                 v-bind:files="myFiles"
                 maxParallelUploads="10"
+                maxFiles="100"
                 @init="handleFilePondInit"
                 @initfile="handleInitFile"
                 @processfile="handleFileUploaded"
+                :allowImagePreview="false"
+                imagePreviewMinHeight="44"
+                imagePreviewMaxHeight="100"
             />
         </div>
     </div>

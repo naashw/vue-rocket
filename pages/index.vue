@@ -1,6 +1,7 @@
 <template>
     <div v-if="keyRecoveringStatus === keyState.SUCCESS">
-        <file-uploader :virtualTourId="virtualTourId"></file-uploader>
+        <file-uploader :virtualTourId="virtualTourId"
+        ></file-uploader>
     </div>
     <div v-else-if="keyRecoveringStatus === keyState.LOADING">
         <p>Chargement... de l'identifiant unique pour la visite virtuelle</p>
