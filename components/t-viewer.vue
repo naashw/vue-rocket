@@ -1,9 +1,7 @@
 <template>
     <div class="size-full bg-[primary] p-1 flex" v-if="projectionIsReady">
         <div class="max-h-[100vh] max-w-[250px] overflow-y-auto">
-            <div
-                class="flex flex-col p-[1rem] gap-[1rem] rounded-md snap-x"
-            >
+            <div class="flex flex-col p-[1rem] gap-[1rem] rounded-md snap-x">
                 <div v-for="room in virtualTour.virtualTourRoom" class="snap-center">
                     <div @click="setVirtualTourRoom(room)" class="cursor-pointer">
                         <img
@@ -90,10 +88,12 @@ interface VirtualTourAnimationDataItem {
         zoom: number;
     };
 }
+const router = useRouter();
 
 const virtualTourRoomPositionsRef = ref<VirtualTourRoomPosition[]>([]);
 const virtualTourAutomaticData = ref<VirtualTourAnimationDataItem[]>([]);
 const virtualTourAnimationIndex = ref(0);
+const virtualTourRoom = ref<VirtualTourRoom>();
 const clientInteraction = ref(false);
 const speedAnimation = 5;
 const timeAnimation = 5000;
@@ -108,20 +108,23 @@ const props = defineProps<{
     virtualTour: VirtualTour;
 }>();
 
-const router = useRouter();
-
 onMounted(async () => {
     await startVirtualTour(props.virtualTour);
 });
 
 async function sendVirtualTourRoomPositions() {
-    if (!virtualTourRoomPositionsRef.value.length) {
+    const virtualTourId = props.virtualTour.virtualTourId;
+    const virtualTourRoomId = virtualTourRoom.value?.id;
+    if (!virtualTourRoomPositionsRef.value.length || !virtualTourRoomId) {
         return;
     }
 
     try {
-        await saveVirtualTourRoomPositions(virtualTourRoomPositionsRef.value);
-        console.log("Données envoyées avec succès");
+        await saveVirtualTourRoomPositions(
+            virtualTourRoomPositionsRef.value,
+            virtualTourId,
+        );
+        console.log(`Données envoyées avec succès ${virtualTourId}`);
         virtualTourRoomPositionsRef.value = []; // a rendre plus resilient pour eviter la suppression de données pas encore envoyé
     } catch (error) {
         console.error("Erreur lors de l'envoi des données :", error);
@@ -141,9 +144,10 @@ async function startVirtualTour(virtualTour: VirtualTour) {
     setupVirtualTourDataAutomatic();
 }
 
-async function setVirtualTourRoom(virtualTourRoom: VirtualTourRoom) {
-    const filepath = virtualTourRoom.pictures[0].filePath;
+async function setVirtualTourRoom(virtualTourRoomToSetup: VirtualTourRoom) {
+    const filepath = virtualTourRoomToSetup.pictures[0].filePath;
     const fullPath = getFullPath(filepath);
+    virtualTourRoom.value = virtualTourRoomToSetup;
     console.log("Set virtual tour room", fullPath);
     projection.value = new EquirectProjection({
         src: fullPath,
@@ -153,8 +157,13 @@ async function setVirtualTourRoom(virtualTourRoom: VirtualTourRoom) {
 }
 
 async function setUpVirtualTour(virtualTour: VirtualTour): Promise<void> {
-    const firstpics = virtualTour?.virtualTourRoom[0]?.pictures[0]?.filePath;
-    const picsFullPath = "http://localhost:3001" + firstpics;
+    const firstRoom = virtualTour?.virtualTourRoom[0];
+    const firstPicture = firstRoom?.pictures[0];
+    if (!firstRoom || !firstPicture) {
+        throw new Error("No room or picture found");
+    }
+    const picsFullPath = "http://localhost:3001" + firstPicture.filePath;
+    virtualTourRoom.value = firstRoom;
     projection = ref(
         new EquirectProjection({
             src: picsFullPath,
@@ -163,27 +172,25 @@ async function setUpVirtualTour(virtualTour: VirtualTour): Promise<void> {
 
     console.log(projection);
 
-        // wait 500ms
-        console.log("Projection is ready");
-        projectionIsReady.value = true;
+    // wait 500ms
+    console.log("Projection is ready");
+    projectionIsReady.value = true;
     return await new Promise((resolve) => setTimeout(resolve, 500));
 }
 
-function setupVirtualTourDataAutomatic(){
-    console.log(viewer.value)
+function setupVirtualTourDataAutomatic() {
+    console.log(viewer.value);
     viewer.value.on("inputStart", onMouseDown);
     viewer.value.on("inputEnd", onMouseUp);
     viewer.value.on("viewChange", onViewChange);
-    const sendingInterval = setInterval(sendVirtualTourRoomPositions, 1000);
+    const sendingInterval = setInterval(sendVirtualTourRoomPositions, 2000);
     onUnmounted(() => {
         clearInterval(sendingInterval);
     });
 }
 
-async function startUpVirtualTourZoom(){
-    console.log("Start up virtual tour zoom");
-    console.log(viewer.value);
-        viewer.value.camera.animateTo({
+async function startUpVirtualTourZoom() {
+    viewer.value.camera.animateTo({
         yaw: 0,
         pitch: 0,
         zoom: 0.6,
@@ -218,33 +225,26 @@ function animationPersonnaliser(x: number): number {
 }
 
 function onMouseDown() {
-    console.log('mousedown')
     clientInteraction.value = true;
     clearTimeout(animationStartTimeoutId);
 }
 
 function onMouseUp() {
-    console.log('mouseup')
-    // await 2 seconds before set to false
     animationStartTimeoutId = setTimeout(() => {
         clientInteraction.value = false;
     }, 5000);
 }
 
 function onViewChange(evt: ViewChangeEvent) {
-    console.log('viewchange')
-    if (!clientInteraction.value) return;
+    const virtualTourRoomId = virtualTourRoom.value?.id;
+    if (!clientInteraction.value || !virtualTourRoomId) return;
     const time = new Date();
-    const virtualTourRoomId = props.virtualTour.id;
-    const position = {
-        yaw: evt.yaw,
-        pitch: evt.pitch,
-        zoom: evt.zoom,
-    };
     const virtualToorRoomPosition: VirtualTourRoomPosition = {
         time,
         virtualTourRoomId,
-        position,
+        yaw: evt.yaw,
+        pitch: evt.pitch,
+        zoom: evt.zoom,
     };
     StockPosition(virtualToorRoomPosition);
 }

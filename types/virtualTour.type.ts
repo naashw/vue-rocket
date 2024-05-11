@@ -25,11 +25,9 @@ export interface VirtualTourPicture {
 export interface VirtualTourRoomPosition {
     time: Date;
     virtualTourRoomId: string;
-    position: {
-        yaw: number;
-        pitch: number;
-        zoom: number;
-    };
+    yaw: number;
+    pitch: number;
+    zoom: number;
 }
 
 export interface VirtualTourDataItem {

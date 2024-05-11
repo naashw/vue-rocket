@@ -25,13 +25,13 @@ interface virtualTourProps {
 }
 
 
-    export async function saveVirtualTourRoomPositions(virtualTourData: VirtualTourRoomPosition[]): Promise<void> {
+    export async function saveVirtualTourRoomPositions(virtualTourData: VirtualTourRoomPosition[], virtualTourId: string): Promise<void> {
     if (!virtualTourData.length) {
         return;
     }
 
     try {
-        await $fetch("virtualTour/", {
+        await $fetch(`virtualTourRoom/${virtualTourId}/positions`, {
             method: "POST",
             body: virtualTourData,
             baseURL: "http://localhost:3001/",

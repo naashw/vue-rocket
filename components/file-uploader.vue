@@ -8,6 +8,7 @@
                 :allow-multiple="true"
                 accepted-file-types="image/jpeg, image/png"
                 v-bind:files="myFiles"
+                maxParallelUploads="10"
                 @init="handleFilePondInit"
                 @initfile="handleInitFile"
                 @processfile="handleFileUploaded"
@@ -32,7 +33,7 @@ import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.min.css
 // Import image preview and file type validation plugins
 import FilePondPluginFileValidateType from "filepond-plugin-file-validate-type";
 import FilePondPluginImagePreview from "filepond-plugin-image-preview";
-import { validateVirtualTourId } from "~/validators/virtualTourId.validator";
+import { isVirtualTourIdValide } from "~/validators/virtualTourId.validator";
 
 // Create component
 const FilePond = vueFilePond(FilePondPluginFileValidateType, FilePondPluginImagePreview);
@@ -44,7 +45,7 @@ export default {
             type: Object,
             require: true,
             validator: (propValue) => {
-                return validateVirtualTourId(propValue);
+                return isVirtualTourIdValide(propValue);
             },
         },
     },
