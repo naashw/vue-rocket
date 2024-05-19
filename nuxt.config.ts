@@ -14,7 +14,7 @@ export default defineNuxtConfig({
     },
   },
   ssr: false,
-  css: ["~/assets/css/view360.css", "~/assets/css/main.css"],
+  css: ["~/assets/css/view360.css", "~/assets/css/main.css", "~/assets/css/scrollbar.css"],
 
   runtimeConfig: {
     public: {

@@ -1,9 +1,15 @@
 <template>
     <div class="size-full bg-[primary] p-1 flex" v-if="projectionIsReady">
-        <div class="max-h-[100vh] max-w-[250px] overflow-y-auto">
+        <div class="max-h-[100vh] max-w-[250px] overflow-y-auto custom-scrollbar select-none">
             <div class="flex flex-col p-[1rem] gap-[1rem] rounded-md snap-x">
-                <div v-for="room in virtualTour.virtualTourRoom" class="snap-center">
-                    <div @click="setVirtualTourRoom(room)" class="cursor-pointer">
+                <div
+                    v-for="(room) in virtualTour.virtualTourRoom"
+                    class="snap-center"
+                >
+                    <div
+                        @click="setVirtualTourRoom(room)"
+                        class="cursor-pointer border-2 border-transparent hover:border-blue-500 hover:border-2"
+                    >
                         <img
                             class="h-[150px] object-cover rounded-md"
                             :src="getFullPath(room.pictures[0].filePath)"
@@ -35,8 +41,7 @@
                 <!-- You can decorate your hotspots however you want! -->
                 <div class="view360-hotspot" data-yaw="-90" data-pitch="-90">
                     <div>
-                        It doesn't matter what content you put inside the hotspot or what
-                        size you have.
+                        Eurélia la noob
                     </div>
                     <!-- <img src="SOME_IMG_URL" alt="Of course, you can display images." /> -->
                 </div>
@@ -94,6 +99,8 @@ const virtualTourRoomPositionsRef = ref<VirtualTourRoomPosition[]>([]);
 const virtualTourAutomaticData = ref<VirtualTourAnimationDataItem[]>([]);
 const virtualTourAnimationIndex = ref(0);
 const virtualTourRoom = ref<VirtualTourRoom>();
+const virtualTourRoomIndex = ref<number>(0);
+
 const clientInteraction = ref(false);
 const speedAnimation = 5;
 const timeAnimation = 5000;
@@ -111,6 +118,13 @@ const props = defineProps<{
 onMounted(async () => {
     await startVirtualTour(props.virtualTour);
 });
+
+function setFocus(virtualTourRoomToSetup: VirtualTourRoom, index: number) {
+    if (virtualTourRoomIndex.value !== index) {
+        setVirtualTourRoom(virtualTourRoomToSetup);
+        virtualTourRoomIndex.value = index;
+    };
+}
 
 async function sendVirtualTourRoomPositions() {
     const virtualTourId = props.virtualTour.virtualTourId;
@@ -145,6 +159,7 @@ async function startVirtualTour(virtualTour: VirtualTour) {
 }
 
 async function setVirtualTourRoom(virtualTourRoomToSetup: VirtualTourRoom) {
+    console.log("set new virtual tour room");
     const filepath = virtualTourRoomToSetup.pictures[0].filePath;
     const fullPath = getFullPath(filepath);
     virtualTourRoom.value = virtualTourRoomToSetup;
