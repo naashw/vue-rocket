@@ -82,8 +82,8 @@ const virtualTourRoom = ref<VirtualTourRoom>();
 const virtualTourRoomIndex = ref<number>(0);
 
 const clientInteraction = ref(false);
-const speedAnimation = 5;
-const timeAnimation = 5000;
+const speedAnimation = 2.5;
+const timeAnimation = 50;
 let animationStartTimeoutId: ReturnType<typeof setTimeout>;
 
 const projectionIsReady = ref(false);
@@ -140,19 +140,23 @@ async function startVirtualTour(virtualTour: VirtualTour) {
 
 async function setVirtualTourRoom(virtualTourRoomToSetup: VirtualTourRoom) {
     console.log("set new virtual tour room");
+    console.log(virtualTourRoomToSetup)
     const filepath = virtualTourRoomToSetup.pictures[0].filePath;
     const fullPath = getFullPath(filepath);
     virtualTourRoom.value = virtualTourRoomToSetup;
-    virtualTourRoomPositionsRef;
+    virtualRoomAnimationPositionRef.value = virtualTourRoomToSetup.positions;
     console.log("Set virtual tour room", fullPath);
     projection.value = new EquirectProjection({
         src: fullPath,
     });
-    startUpVirtualTourZoom();
+    // startUpVirtualTourZoom();
+    // await fetchData(virtualTourRoomToSetup.virtualTourId);
+    startAnimationVirtualTour();
     //    projection = getFullPath(virtualTourRoom.pictures[0].filePath)
 }
 
 async function setUpVirtualTour(virtualTour: VirtualTour): Promise<void> {
+    console.log('setupvirtualtour')
     const firstRoom = virtualTour?.virtualTourRoom[0];
     const firstPicture = firstRoom?.pictures[0];
     if (!firstRoom || !firstPicture) {
@@ -196,6 +200,8 @@ async function startUpVirtualTourZoom() {
 }
 
 function startAnimationVirtualTour() {
+    console.log("Start animation")
+    virtualTourAnimationIndex.value = 0;
     setTimeout(() => {
         setInterval(AnimateVirtualTour, timeAnimation / speedAnimation);
     }, 1);
@@ -206,10 +212,9 @@ async function AnimateVirtualTour() {
         return;
     if (virtualTourAnimationIndex.value >= virtualRoomAnimationPositionRef.value.length)
         return;
-    console.log("=== POSITIONS ===");
     const nextView: VirtualRoomAnimationPosition =
         virtualRoomAnimationPositionRef.value[virtualTourAnimationIndex.value];
-    viewer.value.view360.camera.animateTo({
+    viewer.value.camera.animateTo({
         yaw: nextView.yaw,
         pitch: nextView.pitch,
         zoom: nextView.zoom,
@@ -254,31 +259,35 @@ function StockPosition(virtualToorRoomPosition: VirtualTourRoomPosition): void {
 
 async function updateVirtualTourData(roomId: string) {
     console.log('roomid', roomId)
-    const positions = await fetchData(roomId);
+    const virtualTourRoom = props.virtualTour.virtualTourRoom.find((room) => room.id === roomId);
+    const positions = virtualTourRoom?.positions || [];
+    console.log('POSITIONS=============')
+    console.dir(positions, { depth: null })
     console.log("Virtual tour updated", positions);
 
     virtualRoomAnimationPositionRef.value = positions;
 }
 
-async function fetchData(virtualTourId: string): Promise<VirtualRoomAnimationPosition[]> {
-    try {
-        const virtualTour: VirtualTour = await fetchVirtualTourById(virtualTourId);
-        console.dir(virtualTour, { depth: null });
+// async function fetchData(virtualTourId: string): Promise<VirtualRoomAnimationPosition[]> {
+//     return props.virtualTour.virtualTourRoom.find((room) => room.id === virtualTourId)?.positions || [];
+//     try {
+//         const virtualTour: VirtualTour = await fetchVirtualTourById(virtualTourId);
+//         console.dir(virtualTour, { depth: null });
 
-        const virtualroom: VirtualTourRoom | undefined = virtualTour.virtualTourRoom.find(
-            (room) => room.id === virtualTourRoom.value?.id,
-        );
-        if(!virtualroom || !virtualroom === undefined){
-            throw new Error("Room not found");
-        };
-        console.log('VIRTUALROOM', virtualroom);
+//         const virtualroom: VirtualTourRoom | undefined = virtualTour.virtualTourRoom.find(
+//             (room) => room.id === virtualTourRoom.value?.id,
+//         );
+//         if(!virtualroom || !virtualroom === undefined){
+//             throw new Error("Room not found");
+//         };
+//         console.log('VIRTUALROOM', virtualroom);
 
-        return virtualroom.positions;
-    } catch (error) {
-        console.error("Erreur lors de la récupération des données :", error);
-        return [];
-    }
-}
+//         return virtualroom.positions;
+//     } catch (error) {
+//         console.error("Erreur lors de la récupération des données :", error);
+//         return [];
+//     }
+// }
 </script>
 
 <style scoped>
