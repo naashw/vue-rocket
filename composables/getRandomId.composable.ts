@@ -3,7 +3,7 @@ import { RandomId } from "~/types/randomId.type";
 export async function getRandomVirtualTourId(): Promise<RandomId> {
     try {
         const randomId: { key: string; checksum: string } = await $fetch(
-            "virtualTour/id",
+            "generator/id",
             {
                 method: "GET",
                 baseURL: "http://localhost:3001/",

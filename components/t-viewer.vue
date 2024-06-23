@@ -271,6 +271,30 @@ function onViewChange(evt: ViewChangeEvent) {
 function StockPosition(virtualToorRoomPosition: VirtualTourRoomPosition): void {
     virtualTourRoomPositionsRef.value.push(virtualToorRoomPosition);
 }
+
+async function fetchData() {
+    try {
+        const virtualTourRoomId = props.virtualTour.id; // TODO : Remplacez par l'identifiant de la pièce
+        const virtualTour: VirtualTour = await $fetch(
+            `virtualTour/${virtualTourRoomId}`,
+            {
+                method: "GET",
+                baseURL: "http://localhost:3001/",
+            },
+        );
+
+        // virtualTourAutomaticData.value = response;
+        await updateVirtualTourData(virtualTour);
+    }catch (error) {
+        console.error("Erreur lors de la récupération des données :", error);
+    }
+};
+
+function updateVirtualTourData(virtualTour: VirtualTour) {
+    // props.virtualTour = virtualTour;
+    // console.log("Virtual tour updated", virtualTour);
+}
+
 </script>
 
 <style scoped>

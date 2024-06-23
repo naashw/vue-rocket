@@ -11,7 +11,7 @@ interface virtualTourProps {
     try {
         const virtualTourRoomId = virtualTourId; // TODO : Remplacez par l'identifiant de la pièce
         const virtualTour: VirtualTour = await $fetch(
-            `virtualTour/id/${virtualTourRoomId}`,
+            `virtualTour/${virtualTourRoomId}`,
             {
                 method: "GET",
                 baseURL: "http://localhost:3001/",
