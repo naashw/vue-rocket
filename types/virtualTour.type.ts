@@ -12,7 +12,7 @@ export interface VirtualTourRoom {
     id: string;
     name: string;
     pictures: VirtualTourPicture[];
-    positions: VirtualTourRoomPosition[];
+    positions: VirtualRoomAnimationPosition[];
 }
 
 export interface VirtualTourPicture {
@@ -23,10 +23,20 @@ export interface VirtualTourPicture {
 }
 
 export interface VirtualTourRoomPosition {
+    id?: string;
     time: Date;
     virtualTourRoomId: string;
     yaw: number;
     pitch: number;
+    zoom: number;
+}
+
+export interface VirtualRoomAnimationPosition {
+    id: string;
+    time: Date;
+    virtualTourRoomId: string;
+    pitch: number;
+    yaw: number;
     zoom: number;
 }
 

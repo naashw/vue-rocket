@@ -1,11 +1,10 @@
 <template>
     <div class="size-full bg-[primary] p-1 flex" v-if="projectionIsReady">
-        <div class="max-h-[100vh] max-w-[250px] overflow-y-auto custom-scrollbar select-none border-r-4 border-red">
+        <div
+            class="max-h-[100vh] max-w-[250px] overflow-y-auto custom-scrollbar select-none border-r-4 border-red"
+        >
             <div class="flex flex-col p-[1rem] gap-[1rem] rounded-md snap-x">
-                <div
-                    v-for="(room) in virtualTour.virtualTourRoom"
-                    class="snap-center"
-                >
+                <div v-for="room in virtualTour.virtualTourRoom" class="snap-center">
                     <div
                         @click="setVirtualTourRoom(room)"
                         class="cursor-pointer border-2 border-transparent hover:border-blue-500 hover:border-2"
@@ -41,9 +40,7 @@
                     <!-- View 360 only places the hotspot in the appropriate location. -->
                     <!-- You can decorate your hotspots however you want! -->
                     <div class="view360-hotspot" data-yaw="-45" data-pitch="-45">
-                        <div>
-                            Hi kuma
-                        </div>
+                        <div>Hi kuma</div>
                         <!-- <img src="SOME_IMG_URL" alt="Of course, you can display images." /> -->
                     </div>
                 </div>
@@ -54,24 +51,12 @@
 <script setup lang="ts">
 import { View360, EquirectProjection, ViewChangeEvent } from "@egjs/vue3-view360";
 import { saveVirtualTourRoomPositions } from "../composables/apiVirtualTour.composable";
-import { VirtualTourRoomPosition } from "../types/virtualTour.type";
-
-interface VirtualTour {
-    createdAt: Date;
-    deletedAt: Date;
-    updatedAt: Date;
-    id: string;
-    virtualTourId: string;
-    virtualTourRoom: VirtualTourRoom[];
-}
-
-interface VirtualTourRoom {
-    virtualTourId: string;
-    id: string;
-    name: string;
-    pictures: VirtualTourPicture[];
-    positions: VirtualRoomAnimationPosition[];
-}
+import {
+    VirtualRoomAnimationPosition,
+    VirtualTour,
+    VirtualTourRoom,
+    VirtualTourRoomPosition,
+} from "../types/virtualTour.type";
 
 interface VirtualTourPicture {
     id: string;
@@ -88,14 +73,6 @@ interface VirtualTourDataItem {
     zoom: number;
 }
 
-interface VirtualRoomAnimationPosition {
-    id: string;
-    time: Date;
-    virtualTourRoomId: string;
-    pitch: number;
-    yaw: number;
-    zoom: number;
-}
 const router = useRouter();
 
 const virtualTourRoomPositionsRef = ref<VirtualTourRoomPosition[]>([]);
@@ -126,7 +103,7 @@ function setFocus(virtualTourRoomToSetup: VirtualTourRoom, index: number) {
     if (virtualTourRoomIndex.value !== index) {
         setVirtualTourRoom(virtualTourRoomToSetup);
         virtualTourRoomIndex.value = index;
-    };
+    }
 }
 
 async function sendVirtualTourRoomPositions() {
@@ -166,7 +143,7 @@ async function setVirtualTourRoom(virtualTourRoomToSetup: VirtualTourRoom) {
     const filepath = virtualTourRoomToSetup.pictures[0].filePath;
     const fullPath = getFullPath(filepath);
     virtualTourRoom.value = virtualTourRoomToSetup;
-    virtualTourRoomPositionsRef
+    virtualTourRoomPositionsRef;
     console.log("Set virtual tour room", fullPath);
     projection.value = new EquirectProjection({
         src: fullPath,
@@ -190,7 +167,7 @@ async function setUpVirtualTour(virtualTour: VirtualTour): Promise<void> {
     );
 
     console.log(projection);
-
+    await updateVirtualTourData(virtualTour.virtualTourId);
     // wait 500ms
     console.log("Projection is ready");
     projectionIsReady.value = true;
@@ -225,8 +202,11 @@ function startAnimationVirtualTour() {
 }
 
 async function AnimateVirtualTour() {
-    if (clientInteraction.value || virtualRoomAnimationPositionRef.value.length === 0) return;
-    if (virtualTourAnimationIndex.value >= virtualRoomAnimationPositionRef.value.length) return;
+    if (clientInteraction.value || virtualRoomAnimationPositionRef.value.length === 0)
+        return;
+    if (virtualTourAnimationIndex.value >= virtualRoomAnimationPositionRef.value.length)
+        return;
+    console.log("=== POSITIONS ===");
     const nextView: VirtualRoomAnimationPosition =
         virtualRoomAnimationPositionRef.value[virtualTourAnimationIndex.value];
     viewer.value.view360.camera.animateTo({
@@ -272,29 +252,33 @@ function StockPosition(virtualToorRoomPosition: VirtualTourRoomPosition): void {
     virtualTourRoomPositionsRef.value.push(virtualToorRoomPosition);
 }
 
-async function fetchData() {
-    try {
-        const virtualTourRoomId = props.virtualTour.id; // TODO : Remplacez par l'identifiant de la pièce
-        const virtualTour: VirtualTour = await $fetch(
-            `virtualTour/${virtualTourRoomId}`,
-            {
-                method: "GET",
-                baseURL: "http://localhost:3001/",
-            },
-        );
+async function updateVirtualTourData(roomId: string) {
+    console.log('roomid', roomId)
+    const positions = await fetchData(roomId);
+    console.log("Virtual tour updated", positions);
 
-        // virtualTourAutomaticData.value = response;
-        await updateVirtualTourData(virtualTour);
-    }catch (error) {
-        console.error("Erreur lors de la récupération des données :", error);
-    }
-};
-
-function updateVirtualTourData(virtualTour: VirtualTour) {
-    // props.virtualTour = virtualTour;
-    // console.log("Virtual tour updated", virtualTour);
+    virtualRoomAnimationPositionRef.value = positions;
 }
 
+async function fetchData(virtualTourId: string): Promise<VirtualRoomAnimationPosition[]> {
+    try {
+        const virtualTour: VirtualTour = await fetchVirtualTourById(virtualTourId);
+        console.dir(virtualTour, { depth: null });
+
+        const virtualroom: VirtualTourRoom | undefined = virtualTour.virtualTourRoom.find(
+            (room) => room.id === virtualTourRoom.value?.id,
+        );
+        if(!virtualroom || !virtualroom === undefined){
+            throw new Error("Room not found");
+        };
+        console.log('VIRTUALROOM', virtualroom);
+
+        return virtualroom.positions;
+    } catch (error) {
+        console.error("Erreur lors de la récupération des données :", error);
+        return [];
+    }
+}
 </script>
 
 <style scoped>

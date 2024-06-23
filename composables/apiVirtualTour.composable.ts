@@ -7,9 +7,10 @@ interface virtualTourProps {
 }
 
 
-    export async function fetchVirtualTourById(virtualTourId: string): Promise<VirtualTour> {
+    export async function fetchVirtualTourById(virtualTourId: string): Promise<Required<VirtualTour>> {
     try {
         const virtualTourRoomId = virtualTourId; // TODO : Remplacez par l'identifiant de la pièce
+        console.log(virtualTourRoomId);
         const virtualTour: VirtualTour = await $fetch(
             `virtualTour/${virtualTourRoomId}`,
             {
@@ -17,6 +18,10 @@ interface virtualTourProps {
                 baseURL: "http://localhost:3001/",
             },
         );
+
+        console.dir(virtualTour, { depth: null })
+
+        console.log('virtual tour fetched', virtualTour)
 
         return virtualTour;
     } catch (error) {
