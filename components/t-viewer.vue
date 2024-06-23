@@ -82,8 +82,8 @@ const virtualTourRoom = ref<VirtualTourRoom>();
 const virtualTourRoomIndex = ref<number>(0);
 
 const clientInteraction = ref(false);
-const speedAnimation = 2.5;
-const timeAnimation = 50;
+const speedAnimation = 50;
+const timeAnimation = 1000;
 let animationStartTimeoutId: ReturnType<typeof setTimeout>;
 
 const projectionIsReady = ref(false);
