@@ -40,9 +40,9 @@
                     <div class="view360-hotspot" data-position="0 1 0">3</div>
                     <!-- View 360 only places the hotspot in the appropriate location. -->
                     <!-- You can decorate your hotspots however you want! -->
-                    <div class="view360-hotspot" data-yaw="-90" data-pitch="-90">
+                    <div class="view360-hotspot" data-yaw="-45" data-pitch="-45">
                         <div>
-                            Hi noob peasant
+                            Hi kuma
                         </div>
                         <!-- <img src="SOME_IMG_URL" alt="Of course, you can display images." /> -->
                     </div>
@@ -122,12 +122,12 @@ onMounted(async () => {
     await startVirtualTour(props.virtualTour);
 });
 
-// function setFocus(virtualTourRoomToSetup: VirtualTourRoom, index: number) {
-//     if (virtualTourRoomIndex.value !== index) {
-//         setVirtualTourRoom(virtualTourRoomToSetup);
-//         virtualTourRoomIndex.value = index;
-//     };
-// }
+function setFocus(virtualTourRoomToSetup: VirtualTourRoom, index: number) {
+    if (virtualTourRoomIndex.value !== index) {
+        setVirtualTourRoom(virtualTourRoomToSetup);
+        virtualTourRoomIndex.value = index;
+    };
+}
 
 async function sendVirtualTourRoomPositions() {
     const virtualTourId = props.virtualTour.virtualTourId;
